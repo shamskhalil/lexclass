@@ -1,43 +1,50 @@
+require('./connection.mongo')();
 const express = require('express');
 const bodyParser = require('body-parser');
 const server = express();
 
+const UserModel = require('./models/user.model');
+
+
 server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({ extended: true }));
 
-var ids = 0;
-var usersDb = []; // id, username, password, fname, lname
-
-
 server.get('/', (req, res) => {
     res.json({ status: 'success' });
-})
-
+});
 
 //Create
 server.post('/user', (req, res) => {
-    //let { username, password, fname, lname } = req.body;
-    //let newUser = { username, password, fname, lname };
-    let newUser = req.body;
-    newUser.id = ++ids;
-    usersDb.push(newUser);
-    res.status(200).json({ status: 'success', payload: newUser, message: 'User created successfully!' });
+    let newUser = new UserModel(req.body);
+
+    newUser.save((err, savedUser) => {
+        if (err) {
+            return res.status(500).json({ status: 'failed', payload: null, message: err });
+        }
+        res.status(200).json({ status: 'success', payload: savedUser, message: 'User created successfully!' });
+    });
 });
 
 //read all
 server.get('/user', (req, res) => {
-    res.status(200).json({ status: 'success', payload: usersDb, message: 'A list of all Users' });
+    UserModel.find((err, usersArray) => {
+        if (err) {
+            res.status(500).json({ status: 'failed', payload: null, message: err });
+        }
+        res.status(200).json({ status: 'success', payload: usersArray, message: 'All Users fetched successfully' });
+    });
 });
+
 //read one
 server.get('/user/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    if (id > 0) {
-        for (let i = 0; i < usersDb.length; i++) {
-            let obj = usersDb[i];
-            if (obj.id === id) {
-                return res.status(200).json({ status: 'success', payload: obj, message: 'Single user fetched Successfully!' });
+    const id = req.params.id;
+    if (id) {
+        UserModel.findById(id, (err, singleUser) => {
+            if (err) {
+                res.status(500).json({ status: 'failed', payload: null, message: err });
             }
-        }
+            return res.status(200).json({ status: 'success', payload: singleUser, message: 'Single user fetched Successfully!' });
+        });
     } else {
         res.status(500).json({ status: 'failure', payload: null, message: 'Invalid User id to fetch' });
     }
@@ -45,16 +52,16 @@ server.get('/user/:id', (req, res) => {
 
 //update
 server.put('/user/:id', (req, res) => {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
+    const { password, fname, lname } = req.body;
     let newUserData = req.body;
-    if (id > 0) {
-        for (let i = 0; i < usersDb.length; i++) {
-            let obj = usersDb[i];
-            if (obj.id === id) {
-                usersDb[i] = newUserData;
-                return res.status(200).json({ status: 'success', payload: null, message: 'User updated Successfully!' });
+    if (id) {
+        UserModel.findByIdAndUpdate(id, { $set: { password, fname, lname } }, { new: true }, (err, result) => {
+            if (err) {
+                res.status(500).json({ status: 'failed', payload: null, message: err });
             }
-        }
+            return res.status(200).json({ status: 'success', payload: result, message: 'Single user Updated Successfully!' });
+        })
     } else {
         res.status(500).json({ status: 'failure', payload: null, message: 'Invalid User id to Update' });
     }
@@ -62,20 +69,16 @@ server.put('/user/:id', (req, res) => {
 
 //delete
 server.delete('/user/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    if (id > 0) {
-        let userIdx = 0;
-        for (let i = 0; i < usersDb.length; i++) {
-            let obj = usersDb[i];
-            if (obj.id === id) {
-                userIdx = i;
-                break;
+    const id = req.params.id;
+    if (id) {
+        UserModel.findOneAndDelete(id, (err, result) => {
+            if (err) {
+                res.status(500).json({ status: 'failed', payload: null, message: err });
             }
-        }
-        usersDb.splice(userIdx, 1);
-        res.status(200).json({ status: 'success', payload: null, message: 'User Deleted Successfully!' });
+            res.status(200).json({ status: 'success', payload: null, message: 'User Deleted Successfully!' });
+        })
     } else {
-        res.status(500).json({ status: 'failure', payload: null, message: 'Invalid User id to Delete' });
+        res.status(500).json({ status: 'failure', payload: null, message: 'Invalid User id to Update' });
     }
 });
 

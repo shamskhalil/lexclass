@@ -1,10 +1,5 @@
 const cluster = require('cluster');
 const os = require('os');
-
-//const server = require('./restapi').server;
-//const server = require('./restapi').server;
-
-
 const numCpus = os.cpus().length;
 
 if (cluster.isMaster) {
