@@ -22,5 +22,5 @@ module.exports = () => {
     db.on('disconnect', () => {
         console.log('Oops we are disconnected from mongodb');
     });
-    mongoose.connect('mongodb://shamskhalil:shamsnet@localhost:27017/lexclassdb?authSource=admin', options);
+    mongoose.connect('mongodb://lexUser:lexPass@lexclass-mongo.lvs.ng:27017/lexclassdb?authSource=admin', options);
 }
