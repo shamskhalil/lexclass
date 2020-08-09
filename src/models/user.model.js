@@ -16,19 +16,19 @@ const UserSchema = new Schema({
 
 UserSchema.pre('save', function (next) {
     let me = this;
-    let salt;
     me.fullName = me.fname + ', ' + me.lname;
-    try {
-        salt = bcrypt.genSaltSync();
-        me.password = bcrypt.hashSync(me.password, salt);
-        console.log('Middleware called >> ', me);
-    } catch (err) {
-        console.log("ERRRRRRRRR >>>> ", err);
-    }
-
-    next();
-})
-
+    const salt = bcrypt.genSaltSync();
+    bcrypt.hash(me.password, salt, (err, encrypted) => {
+        if (err) {
+            console.log("Bcrypt User Model Password encryption Error", err);
+            next();
+        } else {
+            me.password = encrypted;
+            next();
+        }
+    });
+});
 
 module.exports = mongoose.model('User', UserSchema);
+
 

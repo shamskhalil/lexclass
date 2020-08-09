@@ -2,9 +2,11 @@
   "name": "tdd",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/restapi.js",
   "scripts": {
-    "test": "mocha -w"
+    "test": "mocha -w",
+    "start": "node src/restapi.js",
+    "cluster": "node src/master.server.js"
   },
   "keywords": [],
   "author": "",

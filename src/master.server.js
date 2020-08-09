@@ -14,6 +14,6 @@ if (cluster.isMaster) {
         cluster.fork();
     }
 } else {
-    require('./restapi').server;
+    require('./restapi').app;
 }
 
